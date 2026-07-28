@@ -67,19 +67,29 @@ titel: Mailvorlagen bearbeiten
 route: admin.mailvorlagen.index
 kategorie: Verwaltung
 position: 13
+rollen: admin
 ---
 
 Einleitung ohne Überschrift (optional).
 
 ## Vorschau und Testmail
-rollen: admin
+rollen: admin, wiki-admin
 
 Markdown-Text des Abschnitts …
 ```
 
 - `route` verknüpft die Seite mit dem Fragezeichen-Knopf: Auf genau dieser Route erscheint er
-  in der Kopfzeile und führt hierher.
-- `rollen:` direkt unter einer Überschrift begrenzt **diesen** Abschnitt.
+  in der Kopfzeile und führt hierher. Achtung: Nur Routen, die auch **gerendert** werden —
+  eine Route, die bloß weiterleitet, zeigt nie einen Knopf.
+- `rollen` gibt es auf **zwei Ebenen**:
+  - **im Kopf** — Vorgabe für die ganze Datei. Der richtige Ort für eine reine
+    Verwaltungs-Anleitung.
+  - **unter einer Überschrift** — gilt für diesen Abschnitt und sticht die Vorgabe. Eine
+    leere Zeile `rollen:` hebt die Vorgabe auf und macht den Abschnitt für alle sichtbar.
+
+  Ohne die Kopf-Ebene müsste die Zeile unter *jeder* Überschrift stehen — und ein einziges
+  vergessenes Vorkommen macht den Abschnitt lautlos öffentlich.
+- `##`-Zeilen innerhalb eines Code-Blocks (```) sind Beispieltext, keine Überschriften.
 
 `php artisan wiki:hilfe-sync` übernimmt die Dateien in die Datenbank. Nach dem Vorbild der
 Mailvorlagen gilt: Der Standard liegt im Paket, die Instanz speichert nur die Abweichung. Eine

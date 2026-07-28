@@ -22,6 +22,7 @@ use App\Modules\Support\ModuleRegistry;
  *     route: admin.mail-vorlagen.index
  *     kategorie: Verwaltung
  *     position: 10
+ *     rollen: admin
  *     ---
  *
  *     Einleitender Text ohne Überschrift (optional).
@@ -32,7 +33,15 @@ use App\Modules\Support\ModuleRegistry;
  *     Markdown-Text des Abschnitts ...
  *
  * `route` verknüpft die Seite mit dem "?"-Knopf der Kopfzeile.
- * `rollen` direkt unter einer Überschrift begrenzt DIESEN Abschnitt.
+ *
+ * `rollen` gibt es auf zwei Ebenen:
+ *  - IM KOPF: gilt als Vorgabe für die ganze Datei.
+ *  - unter einer Überschrift: gilt für DIESEN Abschnitt und sticht die Vorgabe.
+ *    Eine leere Zeile `rollen:` hebt die Vorgabe für den Abschnitt auf ("für alle").
+ *
+ * Ohne die Kopf-Ebene müsste eine reine Verwaltungs-Anleitung die Zeile unter
+ * jeder Überschrift wiederholen - und ein einziges vergessenes Vorkommen macht
+ * den Abschnitt lautlos öffentlich.
  */
 class HilfeDateien
 {
@@ -101,13 +110,47 @@ class HilfeDateien
 
         [$kopf, $rumpf] = $this->kopfTrennen($roh);
 
+        // Rollen im Kopf gelten fuer die GANZE Datei. Ohne diese Moeglichkeit
+        // muesste man die Zeile unter jeder einzelnen Ueberschrift wiederholen -
+        // und ein vergessenes Vorkommen macht den Abschnitt lautlos oeffentlich.
+        $standardRollen = $this->rollenListe($kopf['rollen'] ?? $kopf['tags'] ?? null);
+
+        $abschnitte = array_map(function (array $abschnitt) use ($standardRollen): array {
+            // null = der Abschnitt sagt nichts -> Vorgabe der Datei.
+            // [] = der Abschnitt sagt ausdruecklich "fuer alle" (leere rollen-Zeile).
+            // Sagt auch der Kopf nichts, bleibt es beim leeren Array - nach aussen
+            // ist `rollen` IMMER ein Array, nie null.
+            $abschnitt['rollen'] ??= $standardRollen ?? [];
+
+            return $abschnitt;
+        }, $this->abschnitteTrennen($rumpf));
+
         return [
             'titel' => $kopf['titel'] ?? pathinfo($pfad, PATHINFO_FILENAME),
             'route' => $kopf['route'] ?? null,
             'kategorie' => $kopf['kategorie'] ?? null,
             'position' => (int) ($kopf['position'] ?? 0),
-            'abschnitte' => $this->abschnitteTrennen($rumpf),
+            'abschnitte' => $abschnitte,
         ];
+    }
+
+    /**
+     * "admin, wiki-admin" -> ['admin', 'wiki-admin']. null bleibt null.
+     *
+     * @return string[]|null
+     */
+    private function rollenListe(?string $wert): ?array
+    {
+        if ($wert === null) {
+            return null;
+        }
+
+        return collect(explode(',', $wert))
+            ->map(fn (string $r) => trim($r))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**
@@ -175,22 +218,22 @@ class HilfeDateien
     }
 
     /**
-     * @return array{ueberschrift: ?string, inhalt: string, rollen: string[]}|null
+     * `rollen` ist hier bewusst NULLABLE: null heisst "der Abschnitt sagt
+     * nichts" (dann greift die Vorgabe aus dem Dateikopf), ein leeres Array
+     * heisst "ausdruecklich fuer alle" - eine leere `rollen:`-Zeile ist damit
+     * die Ausnahme von einer Datei-Vorgabe.
+     *
+     * @return array{ueberschrift: ?string, inhalt: string, rollen: string[]|null}|null
      */
     private function abschnittBauen(?string $ueberschrift, string $text): ?array
     {
-        $rollen = [];
+        $rollen = null;
         $zeilen = explode("\n", ltrim($text, "\n"));
 
         // Eine führende Zeile "rollen: a, b" ist die Tag-Angabe und gehört
         // nicht zum Text.
         if (isset($zeilen[0]) && preg_match('/^(rollen|tags) *:(.*)$/i', $zeilen[0], $treffer)) {
-            $rollen = collect(explode(',', $treffer[2]))
-                ->map(fn (string $r) => trim($r))
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
+            $rollen = $this->rollenListe($treffer[2]);
 
             array_shift($zeilen);
         }

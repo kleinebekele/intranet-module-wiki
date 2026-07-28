@@ -78,6 +78,11 @@ php artisan wiki:hilfe-sync
 
 ins Wiki – das gehört in den Deploy-Ablauf, direkt hinter `modules:sync`.
 
+In der Datei stehen die Rollen-Tags an zwei möglichen Stellen: im Kopf gelten sie für die
+ganze Anleitung, unter einer Überschrift nur für diesen Abschnitt. Eine reine
+Verwaltungs-Anleitung bekommt die Angabe deshalb **einmal oben** – die Zeile unter jeder
+Überschrift zu wiederholen ist der sichere Weg, eine zu vergessen.
+
 Bearbeiten Sie eine solche Seite hier im Backend, gilt sie ab dann als **angepasst** und der
 Abgleich fasst sie nicht mehr an. Ihre Arbeit wird also nicht vom nächsten Update
 überschrieben. Über **Auf Paket-Stand** holen Sie bewusst wieder die Fassung aus dem Paket.
