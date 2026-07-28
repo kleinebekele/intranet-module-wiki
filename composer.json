@@ -1,0 +1,29 @@
+{
+    "name": "do1emu/module-wiki",
+    "description": "Wiki- und Hilfe-Modul für die modulare Intranet-Plattform: https://github.com/kleinebekele/intranet-core",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "intranet", "modul", "wiki", "hilfe", "dokumentation"],
+    "authors": [
+        {
+            "name": "do1emu"
+        }
+    ],
+    "require": {
+        "php": "^8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Intranet\\Modules\\Wiki\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Intranet\\Modules\\Wiki\\WikiServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
