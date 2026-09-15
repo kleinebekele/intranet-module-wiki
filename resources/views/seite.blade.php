@@ -16,6 +16,18 @@
                 </div>
             @endif
 
+            {{-- Rücksprung: Wer über das Fragezeichen kam, will danach wieder dorthin --}}
+            @if ($zurueck)
+                <div class="bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                    <span class="text-sm text-indigo-900">Sie lesen die Hilfe zu der Seite, von der Sie gekommen sind.</span>
+                    <a href="{{ $zurueck }}"
+                       class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                        <x-module-icon name="back" class="text-base" />
+                        Zurück zur Seite
+                    </a>
+                </div>
+            @endif
+
             {{-- Kopfleiste: Herkunft, Werkzeuge --}}
             <div class="bg-white shadow-sm sm:rounded-lg p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
                 <div class="text-sm text-gray-500">
@@ -42,6 +54,9 @@
                     @if ($darfBearbeiten)
                         {{-- Vorschau: Was sieht jemand mit genau dieser einen Rolle? --}}
                         <form method="GET" action="{{ route('module.wiki.show', $seite->slug) }}" class="flex items-center gap-2">
+                            @if ($zurueck)
+                                <input type="hidden" name="zurueck" value="{{ $zurueck }}">
+                            @endif
                             <label for="als" class="text-xs text-gray-500">Ansehen als</label>
                             <select id="als" name="als" onchange="this.form.submit()"
                                     class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -98,7 +113,7 @@
                 <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-3">
                     Vorschau: Sie sehen die Seite so, wie sie jemand mit der Rolle
                     <strong>{{ $alleRollen->firstWhere('role_id', $vorschauRolle)?->name ?? $vorschauRolle }}</strong> sieht.
-                    <a href="{{ route('module.wiki.show', $seite->slug) }}" class="underline">Zurück zur vollen Ansicht</a>
+                    <a href="{{ route('module.wiki.show', array_filter(['seite' => $seite->slug, 'zurueck' => $zurueck])) }}" class="underline">Zurück zur vollen Ansicht</a>
                 </div>
             @endif
 
@@ -166,4 +181,13 @@
             </div>
         </div>
     </div>
+
+    {{-- Schwebender Rücksprung: bleibt beim Scrollen unten rechts sichtbar --}}
+    @if ($zurueck)
+        <a href="{{ $zurueck }}"
+           class="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            <x-module-icon name="back" class="text-lg" />
+            Zurück zur Seite
+        </a>
+    @endif
 </x-app-layout>

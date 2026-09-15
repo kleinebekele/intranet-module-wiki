@@ -74,6 +74,7 @@ class WikiController
 
         return view('wiki::seite', [
             'seite' => $seite,
+            'zurueck' => WikiSeite::sichereRuecksprungAdresse($request->query('zurueck')),
             'rollen' => $rollen,
             'alleZeigen' => $alleZeigen,
             'vorschauRolle' => $vorschauRolle,

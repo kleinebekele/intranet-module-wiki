@@ -119,6 +119,10 @@ class WikiSeite extends Model
      * Bewusst schlank gehalten – das läuft bei jedem Seitenaufruf. Gefunden
      * wird nur, was der Benutzer auch lesen darf; sonst zeigte der "?"-Knopf
      * auf eine 403.
+     *
+     * Die Adresse der aufrufenden Seite reist als `zurueck` mit, damit die
+     * Hilfeseite einen Rücksprung anbieten kann. Gemerkt wird deshalb nur der
+     * Slug, nicht die fertige URL.
      */
     public static function urlFuerRoute(string $routeName, ?User $user): ?string
     {
@@ -128,10 +132,41 @@ class WikiSeite extends Model
                 ->where('hilfe_fuer_route', $routeName)
                 ->first();
 
-            static::$hilfeMemo[$routeName] = $seite ? route('module.wiki.show', $seite->slug) : null;
+            static::$hilfeMemo[$routeName] = $seite?->slug;
         }
 
-        return static::$hilfeMemo[$routeName];
+        $slug = static::$hilfeMemo[$routeName];
+
+        if ($slug === null) {
+            return null;
+        }
+
+        return route('module.wiki.show', ['seite' => $slug, 'zurueck' => request()->fullUrl()]);
+    }
+
+    /**
+     * Den `zurueck`-Parameter absichern: Nur Adressen dieser Anwendung werden
+     * angenommen, alles andere (fremde Hosts, `javascript:`, `//evil`) verfällt.
+     */
+    public static function sichereRuecksprungAdresse(?string $adresse): ?string
+    {
+        if ($adresse === null || $adresse === '') {
+            return null;
+        }
+
+        $adresse = trim($adresse);
+
+        if (str_starts_with($adresse, '/') && ! str_starts_with($adresse, '//') && ! str_starts_with($adresse, '/\\')) {
+            return $adresse;
+        }
+
+        $eigen = rtrim(config('app.url'), '/');
+
+        if ($eigen !== '' && ($adresse === $eigen || str_starts_with($adresse, $eigen.'/'))) {
+            return $adresse;
+        }
+
+        return null;
     }
 
     /** Nur fuer Tests: das Gedaechtnis der Kontexthilfe leeren. */
