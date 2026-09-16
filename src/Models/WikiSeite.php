@@ -141,7 +141,9 @@ class WikiSeite extends Model
             return null;
         }
 
-        return route('module.wiki.show', ['seite' => $slug, 'zurueck' => request()->fullUrl()]);
+        // Nur Pfad und Query: Hinter einem Proxy weichen Schema oder Host der
+        // Anfrage von APP_URL ab, eine volle Adresse fiele dann in der Pruefung durch.
+        return route('module.wiki.show', ['seite' => $slug, 'zurueck' => request()->getRequestUri()]);
     }
 
     /**
@@ -160,9 +162,15 @@ class WikiSeite extends Model
             return $adresse;
         }
 
-        $eigen = rtrim(config('app.url'), '/');
+        // Volle Adressen: eigener Host genuegt, das Schema darf abweichen (Proxy).
+        $host = parse_url($adresse, PHP_URL_HOST);
+        $schema = parse_url($adresse, PHP_URL_SCHEME);
+        $eigeneHosts = array_filter([
+            parse_url((string) config('app.url'), PHP_URL_HOST),
+            request()->getHost(),
+        ]);
 
-        if ($eigen !== '' && ($adresse === $eigen || str_starts_with($adresse, $eigen.'/'))) {
+        if (in_array($schema, ['http', 'https'], true) && $host !== null && in_array($host, $eigeneHosts, true)) {
             return $adresse;
         }
 
