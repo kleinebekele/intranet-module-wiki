@@ -22,6 +22,8 @@ class WikiServiceProvider extends ModuleServiceProvider
     public function manifest(): ModuleManifest
     {
         return ModuleManifest::make('wiki', 'Wiki', icon: 'book')
+            ->rolle('wiki-admin', 'Wiki-Administrator')
+            ->rolle('wiki-moderator', 'Wiki-Moderator')
             ->item('index', 'Uebersicht', 'module.wiki.index', icon: 'book')
             ->item('hilfe', 'Hilfe und HowTos', 'module.wiki.hilfe', icon: 'help')
             ->item('create', 'Beitrag anlegen', 'module.wiki.create', icon: 'plus');

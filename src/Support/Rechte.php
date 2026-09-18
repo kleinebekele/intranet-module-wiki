@@ -2,6 +2,7 @@
 
 namespace Intranet\Modules\Wiki\Support;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
@@ -42,7 +43,15 @@ class Rechte
      */
     public static function rollenIds(?User $user): Collection
     {
-        return $user?->roles->pluck('role_id') ?? collect();
+        $ids = $user?->roles->pluck('role_id') ?? collect();
+
+        // Rollen eines deaktivierten Moduls gelten nicht (neuerer Core); ein
+        // älterer Core kennt die Unterscheidung noch nicht.
+        if (method_exists(Role::class, 'inaktiveSchluessel')) {
+            $ids = $ids->diff(Role::inaktiveSchluessel())->values();
+        }
+
+        return $ids;
     }
 
     /** @param  string[]  $rollen */
@@ -56,6 +65,6 @@ class Rechte
             return true;
         }
 
-        return $user->roles->pluck('role_id')->intersect($rollen)->isNotEmpty();
+        return self::rollenIds($user)->intersect($rollen)->isNotEmpty();
     }
 }
