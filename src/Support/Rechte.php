@@ -51,6 +51,13 @@ class Rechte
             $ids = $ids->diff(Role::inaktiveSchluessel())->values();
         }
 
+        // Administrator ist im Core ein Merkmal am Benutzer (is_admin), keine
+        // zugewiesene Rolle. Abschnitte mit "rollen: admin" waren deshalb selbst
+        // für Administratoren ausgeblendet.
+        if ($user?->is_admin && ! $ids->contains('admin')) {
+            $ids = $ids->push('admin')->values();
+        }
+
         return $ids;
     }
 
