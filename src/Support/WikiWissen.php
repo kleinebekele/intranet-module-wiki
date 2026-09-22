@@ -41,6 +41,9 @@ final class WikiWissen
         }
 
         $rollen = Rechte::rollenIds($benutzer);
+        // Wie in der Wiki-Oberfläche: Wer bearbeiten darf (Administratoren,
+        // Wiki-Rollen), sieht jeden Absatz – auch die für andere Rollen getaggten.
+        $alleSehen = Rechte::darfBearbeiten($benutzer);
 
         $seiten = WikiSeite::query()
             ->with(['abschnitte.rollen'])
@@ -56,7 +59,7 @@ final class WikiWissen
         $kandidaten = [];
         foreach ($seiten as $seite) {
             $titelTreffer = self::treffer($seite->titel, $woerter);
-            foreach ($seite->sichtbareAbschnitte($rollen) as $abschnitt) {
+            foreach ($alleSehen ? $seite->abschnitte : $seite->sichtbareAbschnitte($rollen) as $abschnitt) {
                 /** @var WikiAbschnitt $abschnitt */
                 $punkte = self::treffer((string) $abschnitt->ueberschrift.' '.$abschnitt->inhalt, $woerter) * 2 + $titelTreffer;
                 if ($punkte === 0) {
