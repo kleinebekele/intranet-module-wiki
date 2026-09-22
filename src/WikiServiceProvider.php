@@ -48,5 +48,14 @@ class WikiServiceProvider extends ModuleServiceProvider
                 return null;
             }
         });
+
+        // Das Wiki als Wissensquelle der KI im Teams-Chat (Core ab 22.09.2026).
+        // Aeltere Cores kennen die Klasse nicht - dann eben keine Quelle.
+        if (class_exists(\App\Ekkon\Support\Wissensquellen::class)) {
+            \App\Ekkon\Support\Wissensquellen::anmelden(
+                'Wiki',
+                fn (string $frage, ?User $benutzer, int $limit): array => \Intranet\Modules\Wiki\Support\WikiWissen::suchen($frage, $benutzer, $limit),
+            );
+        }
     }
 }
