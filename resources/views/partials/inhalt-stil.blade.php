@@ -14,7 +14,7 @@
     .wiki-inhalt h1,
     .wiki-inhalt h2,
     .wiki-inhalt h3,
-    .wiki-inhalt h4 { margin: 1.25rem 0 0.5rem; font-weight: 600; color: #1f2937; line-height: 1.3; }
+    .wiki-inhalt h4 { margin: 1.25rem 0 0.5rem; font-weight: 600; color: var(--color-gray-800, #1f2937); line-height: 1.3; }
     .wiki-inhalt h1 { font-size: 1.375rem; }
     .wiki-inhalt h2 { font-size: 1.175rem; }
     .wiki-inhalt h3 { font-size: 1.05rem; }
@@ -26,14 +26,14 @@
     .wiki-inhalt li { margin: 0.25rem 0; }
     .wiki-inhalt li > ul,
     .wiki-inhalt li > ol { margin: 0.25rem 0; }
-    .wiki-inhalt a { color: #4338ca; text-decoration: underline; }
-    .wiki-inhalt a:hover { color: #3730a3; }
-    .wiki-inhalt strong { font-weight: 600; color: #111827; }
+    .wiki-inhalt a { color: var(--color-indigo-700, #4338ca); text-decoration: underline; }
+    .wiki-inhalt a:hover { color: var(--color-indigo-800, #3730a3); }
+    .wiki-inhalt strong { font-weight: 600; color: var(--color-gray-900, #111827); }
     .wiki-inhalt em { font-style: italic; }
     .wiki-inhalt code {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 0.875em;
-        background: #f3f4f6;
+        background: var(--color-gray-100, #f3f4f6);
         border-radius: 0.25rem;
         padding: 0.1rem 0.3rem;
     }
@@ -51,13 +51,13 @@
     .wiki-inhalt blockquote {
         margin: 0.75rem 0;
         padding: 0.25rem 0 0.25rem 1rem;
-        border-left: 3px solid #c7d2fe;
-        color: #4b5563;
+        border-left: 3px solid var(--color-indigo-200, #c7d2fe);
+        color: var(--color-gray-600, #4b5563);
     }
-    .wiki-inhalt hr { margin: 1.25rem 0; border-color: #e5e7eb; }
+    .wiki-inhalt hr { margin: 1.25rem 0; border-color: var(--color-gray-200, #e5e7eb); }
     .wiki-inhalt table { width: 100%; margin: 0.75rem 0; font-size: 0.875rem; border-collapse: collapse; display: block; overflow-x: auto; }
     .wiki-inhalt th,
-    .wiki-inhalt td { border: 1px solid #e5e7eb; padding: 0.375rem 0.625rem; text-align: left; }
-    .wiki-inhalt th { background: #f9fafb; font-weight: 600; }
+    .wiki-inhalt td { border: 1px solid var(--color-gray-200, #e5e7eb); padding: 0.375rem 0.625rem; text-align: left; }
+    .wiki-inhalt th { background: var(--color-gray-50, #f9fafb); font-weight: 600; }
     .wiki-inhalt img { max-width: 100%; height: auto; }
 </style>
