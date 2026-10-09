@@ -72,9 +72,23 @@ class WikiController
 
         abort_unless($alleZeigen || $this->lesbar($seite, $rollen), 404);
 
+        $zurueck = WikiSeite::sichereRuecksprungAdresse($request->query('zurueck'));
+
+        // Das Hilfe-Fenster des Cores („?"-Knopf) will nur den Text, ohne Seitenrahmen.
+        // Im Fenster sieht auch ein Bearbeiter nur, was für seine Rollen gilt.
+        if ($request->header('X-Hilfe-Modal')) {
+            return view('wiki::modal', [
+                'seite' => $seite,
+                'rollen' => Rechte::rollenIds($user),
+                'alleZeigen' => false,
+                'darfBearbeiten' => $darfBearbeiten,
+                'seiteUrl' => route('module.wiki.show', array_filter(['seite' => $seite->slug, 'zurueck' => $zurueck])),
+            ]);
+        }
+
         return view('wiki::seite', [
             'seite' => $seite,
-            'zurueck' => WikiSeite::sichereRuecksprungAdresse($request->query('zurueck')),
+            'zurueck' => $zurueck,
             'rollen' => $rollen,
             'alleZeigen' => $alleZeigen,
             'vorschauRolle' => $vorschauRolle,
