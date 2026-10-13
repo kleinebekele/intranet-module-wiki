@@ -158,8 +158,16 @@ class WikiSeite extends Model
 
         $adresse = trim($adresse);
 
-        if (str_starts_with($adresse, '/') && ! str_starts_with($adresse, '//') && ! str_starts_with($adresse, '/\\')) {
-            return $adresse;
+        // Steuerzeichen und Backslashes vorab verwerfen: Browser lassen Tab/
+        // Zeilenumbruch mitten in der Adresse fallen und lesen "\" wie "/" -
+        // aus "/\t/evil" oder "/\evil" wird sonst "//evil", also ein fremder Host.
+        if (preg_match('/[\x00-\x1F\x7F\\\\]/', $adresse)) {
+            return null;
+        }
+
+        // Pfad dieser Anwendung: genau ein fuehrender Schraegstrich.
+        if (str_starts_with($adresse, '/')) {
+            return str_starts_with($adresse, '//') ? null : $adresse;
         }
 
         // Volle Adressen: eigener Host genuegt, das Schema darf abweichen (Proxy).

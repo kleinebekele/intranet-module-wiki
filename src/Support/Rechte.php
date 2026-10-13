@@ -13,9 +13,9 @@ use Illuminate\Support\Collection;
  * (EnsureModuleAccess) und wird hier nicht noch einmal nachgebaut. Hier steht
  * nur, was darüber hinausgeht.
  *
- * Wichtig: Die Schreibrouten haben keinen eigenen Menüpunkt, für sie greift im
- * Core die milde Auffangregel ("darf irgendeinen Punkt des Moduls sehen").
- * Deshalb MUSS jede schreibende Route hier zusätzlich prüfen.
+ * Wichtig: Die Schreibrouten haben keinen eigenen Menüpunkt; das Manifest hängt
+ * sie per gehoertZu() an "Beitrag anlegen". Dessen Stufe ist aber nur die
+ * äußere Schranke – jede schreibende Route MUSS hier zusätzlich prüfen.
  */
 class Rechte
 {

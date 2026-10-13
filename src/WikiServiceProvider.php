@@ -5,6 +5,7 @@ namespace Intranet\Modules\Wiki;
 use App\Models\User;
 use App\Modules\Support\ModuleManifest;
 use App\Modules\Support\ModuleServiceProvider;
+use App\Modules\Support\Zugriffsstufe;
 use App\Support\Hilfe;
 use Intranet\Modules\Wiki\Console\HilfeSyncCommand;
 use Intranet\Modules\Wiki\Models\WikiSeite;
@@ -26,7 +27,20 @@ class WikiServiceProvider extends ModuleServiceProvider
             ->rolle('wiki-moderator', 'Wiki-Moderator')
             ->item('index', 'Uebersicht', 'module.wiki.index', icon: 'book')
             ->item('hilfe', 'Hilfe und HowTos', 'module.wiki.hilfe', icon: 'help')
-            ->item('create', 'Beitrag anlegen', 'module.wiki.create', icon: 'plus');
+            ->item('create', 'Beitrag anlegen', 'module.wiki.create', icon: 'plus')
+            // Die Schreibrouten haben keinen eigenen Menuepunkt. Ohne Zuordnung
+            // bekaemen sie im Core nur die niedrigste Stufe des Benutzers im
+            // Modul - sie haengen deshalb an "Beitrag anlegen", dem Punkt der
+            // Redaktion. Die Wiki-Rollen prueft der Controller weiterhin selbst.
+            // `show` bleibt frei: Lesen reicht, auch fuer reine Hilfe-Leser.
+            ->gehoertZu('create', 'store', 'edit', 'update', 'destroy', 'verlauf', 'zuruecksetzen')
+            // Anlegen und Bearbeiten sind im Wiki dieselbe Befugnis (Rechte::darfBearbeiten):
+            // Speichern eines neuen Beitrags reicht mit "bearbeiten" - bestehende
+            // Zuordnungen muessen dafuer nicht auf "verwalten" hoch. Loeschen (DELETE)
+            // bleibt bei verwalten; Zuruecksetzen ist ein POST und wird eigens
+            // auf verwalten gehoben (passt zu Rechte::darfVerwalten).
+            ->stufe(Zugriffsstufe::Bearbeiten, 'create', 'store')
+            ->stufe(Zugriffsstufe::Verwalten, 'zuruecksetzen');
     }
 
     public function boot(): void

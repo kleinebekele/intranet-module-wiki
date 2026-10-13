@@ -11,8 +11,8 @@ use Intranet\Modules\Wiki\Http\Controllers\WikiController;
  | vorher nicht getroffen hat - feste Pfade muessen also davor stehen.
  |
  | Die schreibenden Routen haben absichtlich KEINEN eigenen Menuepunkt (ausser
- | "anlegen"). Fuer sie greift im Core die milde Auffangregel, deshalb prueft
- | der Controller die Wiki-Rollen zusaetzlich selbst.
+ | "anlegen"). Das Manifest ordnet sie per gehoertZu() dem Punkt "Beitrag
+ | anlegen" zu; der Controller prueft die Wiki-Rollen zusaetzlich selbst.
 */
 Route::middleware(['web', 'auth'])
     ->prefix('modules/wiki')
