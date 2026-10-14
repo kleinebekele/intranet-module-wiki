@@ -13,6 +13,7 @@ use Intranet\Modules\Wiki\Support\Rechte;
  *
  * Ein Benutzer sieht nur, wovon er mindestens einen Abschnitt lesen darf -
  * eine Anleitung, von der fuer ihn nichts uebrig bleibt, waere ein toter Link.
+ * Hilfe zu Modulen, die er nicht benutzen darf, bleibt ebenfalls aussen vor.
  */
 class HilfeController
 {
@@ -29,7 +30,8 @@ class HilfeController
             ->orderBy('titel')
             ->get()
             ->filter(fn (WikiSeite $s) => $darfBearbeiten
-                || $s->abschnitte->contains(fn (WikiAbschnitt $a) => $a->sichtbarFuer($rollen)));
+                || ($s->modulFreigegebenFuer($user)
+                    && $s->abschnitte->contains(fn (WikiAbschnitt $a) => $a->sichtbarFuer($rollen))));
 
         return view('wiki::hilfe', [
             'bereiche' => $seiten->groupBy(fn (WikiSeite $s) => $s->kategorie ?: $this->bereichAusQuelle($s, $registry)),

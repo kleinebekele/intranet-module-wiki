@@ -58,6 +58,10 @@ final class WikiWissen
 
         $kandidaten = [];
         foreach ($seiten as $seite) {
+            // Hilfe zu Modulen, die der Fragende nicht benutzen darf, bleibt draußen.
+            if (! $alleSehen && ! $seite->modulFreigegebenFuer($benutzer)) {
+                continue;
+            }
             $titelTreffer = self::treffer($seite->titel, $woerter);
             foreach ($alleSehen ? $seite->abschnitte : $seite->sichtbareAbschnitte($rollen) as $abschnitt) {
                 /** @var WikiAbschnitt $abschnitt */

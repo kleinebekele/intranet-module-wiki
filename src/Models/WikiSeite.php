@@ -2,7 +2,9 @@
 
 namespace Intranet\Modules\Wiki\Models;
 
+use App\Models\Module;
 use App\Models\User;
+use App\Modules\Support\Modulzugriff;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -44,6 +46,47 @@ class WikiSeite extends Model
             'angepasst' => 'boolean',
             'position' => 'integer',
         ];
+    }
+
+    /**
+     * Darf der Benutzer das Modul benutzen, zu dem diese Seite gehört?
+     *
+     * Die Rollen-Tags der Abschnitte regeln nur, WER innerhalb eines Themas was
+     * liest. Ob das Thema überhaupt für ihn da ist, entscheidet der Modulzugang:
+     *  - Seite mit Ziel-Route: ginge ein Aufruf dieser Route durch (dieselbe
+     *    Prüfung wie `@darfRoute`)? Routen außerhalb von `module.*` sind frei.
+     *  - Sonst Hilfe aus einem Modul (`hilfe_quelle = modul:…`): sieht er
+     *    mindestens einen Menüpunkt dieses Moduls?
+     *  - Alles andere (Core-Hilfe, freie Beiträge): frei.
+     *
+     * Wiki-Bearbeiter umgehen das an den Aufrufstellen, nicht hier.
+     */
+    public function modulFreigegebenFuer(?User $user): bool
+    {
+        if (filled($this->hilfe_fuer_route)) {
+            return $user !== null && app(Modulzugriff::class)->darfRoute($this->hilfe_fuer_route, $user);
+        }
+
+        if (is_string($this->hilfe_quelle) && str_starts_with($this->hilfe_quelle, 'modul:')) {
+            return $user !== null && static::modulStufe(substr($this->hilfe_quelle, 6), $user);
+        }
+
+        return true;
+    }
+
+    /** Modulzugang je Benutzer und Modul – einmal je Anfrage nachgeschlagen. */
+    private static function modulStufe(string $key, User $user): bool
+    {
+        $merker = 'wiki.modulzugang.'.$user->id.'.'.$key;
+        $attribute = request()->attributes;
+
+        if (! $attribute->has($merker)) {
+            $modul = Module::query()->with('menuItems.roles')->where('key', $key)->first();
+            $attribute->set($merker, $user->is_admin
+                || ($modul !== null && $modul->is_enabled && $modul->stufeFuer($user) !== null));
+        }
+
+        return $attribute->get($merker);
     }
 
     public function abschnitte(): HasMany

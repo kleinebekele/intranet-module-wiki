@@ -3,6 +3,7 @@
 namespace Intranet\Modules\Wiki\Http\Controllers;
 
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ class WikiController
         if ($suche !== '') {
             return view('wiki::index', [
                 'suche' => $suche,
-                'treffer' => $this->suchen($suche, $rollen, $darfBearbeiten),
+                'treffer' => $this->suchen($suche, $rollen, $user, $darfBearbeiten),
                 'kategorien' => collect(),
                 'darfBearbeiten' => $darfBearbeiten,
             ]);
@@ -41,7 +42,7 @@ class WikiController
             // Wer bearbeiten darf, braucht auch die Seiten in der Liste, von
             // denen er selbst keinen Abschnitt sehen wuerde - sonst koennte er
             // sie nie wieder aufrufen.
-            ->filter(fn (WikiSeite $s) => $darfBearbeiten || $this->lesbar($s, $rollen));
+            ->filter(fn (WikiSeite $s) => $darfBearbeiten || $this->lesbar($s, $rollen, $user));
 
         return view('wiki::index', [
             'suche' => '',
@@ -70,7 +71,7 @@ class WikiController
         // aber deutlich gekennzeichnet, damit ihm der Unterschied bewusst ist.
         $alleZeigen = $darfBearbeiten && $vorschauRolle === null;
 
-        abort_unless($alleZeigen || $this->lesbar($seite, $rollen), 404);
+        abort_unless($alleZeigen || $this->lesbar($seite, $rollen, $user), 404);
 
         $zurueck = WikiSeite::sichereRuecksprungAdresse($request->query('zurueck'));
 
@@ -294,20 +295,22 @@ class WikiController
     /**
      * Eine Seite ist lesbar, sobald mindestens ein Abschnitt sichtbar ist.
      * Eine Seite, von der ein Benutzer keine Zeile sehen darf, existiert fuer
-     * ihn nicht - sonst verriete schon der Titel etwas.
+     * ihn nicht - sonst verriete schon der Titel etwas. Dasselbe gilt fuer
+     * Hilfe zu einem Modul, das er nicht benutzen darf.
      *
      * @param  Collection<int, string>  $rollen
      */
-    private function lesbar(WikiSeite $seite, Collection $rollen): bool
+    private function lesbar(WikiSeite $seite, Collection $rollen, ?User $user): bool
     {
-        return $seite->abschnitte->contains(fn (WikiAbschnitt $a) => $a->sichtbarFuer($rollen));
+        return $seite->modulFreigegebenFuer($user)
+            && $seite->abschnitte->contains(fn (WikiAbschnitt $a) => $a->sichtbarFuer($rollen));
     }
 
     /**
      * @param  Collection<int, string>  $rollen
      * @return Collection<int, array{seite: WikiSeite, abschnitt: ?WikiAbschnitt}>
      */
-    private function suchen(string $suche, Collection $rollen, bool $alleSehen = false): Collection
+    private function suchen(string $suche, Collection $rollen, ?User $user, bool $alleSehen = false): Collection
     {
         $muster = '%'.str_replace(['%', '_'], ['\%', '\_'], $suche).'%';
 
@@ -324,7 +327,11 @@ class WikiController
             })
             ->orderBy('titel')
             ->get()
-            ->map(function (WikiSeite $seite) use ($rollen, $suche, $alleSehen) {
+            ->map(function (WikiSeite $seite) use ($rollen, $suche, $user, $alleSehen) {
+                if (! $alleSehen && ! $seite->modulFreigegebenFuer($user)) {
+                    return null;
+                }
+
                 $sichtbare = $alleSehen ? $seite->abschnitte : $seite->sichtbareAbschnitte($rollen);
 
                 if ($sichtbare->isEmpty()) {
